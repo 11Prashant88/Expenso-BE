@@ -1,4 +1,5 @@
 const express = require('express');
+var cors = require('cors');
 const { default: mongoose } = require('mongoose');
 const _ = require("lodash"); 
 const app = express();
