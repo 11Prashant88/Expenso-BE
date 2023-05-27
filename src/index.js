@@ -60,7 +60,7 @@ const Spending = mongoose.model('Spending', spendingSchema)
 app.use(express.json());
 
 app.use(cors({
-    origin: ["http://localhost:3000", "https://spendingo-app.onrender.com"]
+    origin: ["http://localhost:4200", "https://spendingo-app.onrender.com"]
 }))
 
 app.use((req, res, next)=>{
