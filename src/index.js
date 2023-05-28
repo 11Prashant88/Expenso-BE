@@ -60,7 +60,7 @@ const Expense = mongoose.model('Expense', expenseSchema)
 app.use(express.json());
 
 app.use(cors({
-    origin: ["http://localhost:4200", "https://expenso-app.onrender.com"]
+    origin: ["http://localhost:4200", "https://expenso.onrender.com"]
 }))
 
 app.use((req, res, next)=>{
