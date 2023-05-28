@@ -127,7 +127,7 @@ app.post('/expenses', async (req, res)=>{
          const totalFunds = !_.isEmpty(contributions) ? contributions[0].sum : 0;
          const totalExpenses = !_.isEmpty(expenses) ? expenses[0].sum : 0;
 
-         if((totalSpends + req.body.price) > totalFunds){
+         if((totalExpenses + req.body.price) > totalFunds){
             return res.status(400).send({error: `Funds shortage : ₹${(totalExpenses + req.body.price) - totalFunds}`});
          }
 
