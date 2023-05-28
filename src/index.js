@@ -30,7 +30,7 @@ contributionSchema.methods.toJSON = function(){
 const Contribution = mongoose.model('Contribution', contributionSchema)
 
 
-const spendingSchema = new mongoose.Schema({
+const expenseSchema = new mongoose.Schema({
     item:{
         type:'String'
     },
@@ -44,7 +44,7 @@ const spendingSchema = new mongoose.Schema({
     timestamps: true
 })
 
-spendingSchema.methods.toJSON = function(){
+expenseSchema.methods.toJSON = function(){
     const user = this;
 
     const userObject = user.toObject();
@@ -55,12 +55,12 @@ spendingSchema.methods.toJSON = function(){
     return userObject;
 }
 
-const Spending = mongoose.model('Spending', spendingSchema)
+const Expense = mongoose.model('Expense', expenseSchema)
 
 app.use(express.json());
 
 app.use(cors({
-    origin: ["http://localhost:3000", "https://spendingo-app.onrender.com"]
+    origin: ["http://localhost:4200", "https://expenso.onrender.com"]
 }))
 
 app.use((req, res, next)=>{
@@ -89,16 +89,16 @@ app.post('/contributions', async (req, res)=>{
     }
 })
 
-app.get('/spendings', async (req, res)=>{
+app.get('/expenses', async (req, res)=>{
     try{
-        const spendings = await Spending.find({});
-        res.status(200).send(spendings);
+        const expenses = await Expense.find({});
+        res.status(200).send(expenses);
     }catch(e){
         res.status(500).send(e);
     }
 })
 
-app.post('/spendings', async (req, res)=>{
+app.post('/expenses', async (req, res)=>{
     try{
         const contributions = await Contribution.aggregate(
             [
@@ -112,7 +112,7 @@ app.post('/spendings', async (req, res)=>{
             ]
          )
 
-         const spendings = await Spending.aggregate(
+         const expenses = await Expense.aggregate(
             [
               {
                 $group:
@@ -125,15 +125,15 @@ app.post('/spendings', async (req, res)=>{
          )
 
          const totalFunds = !_.isEmpty(contributions) ? contributions[0].sum : 0;
-         const totalSpends = !_.isEmpty(spendings) ? spendings[0].sum : 0;
+         const totalExpenses = !_.isEmpty(expenses) ? expenses[0].sum : 0;
 
          if((totalSpends + req.body.price) > totalFunds){
-            return res.status(400).send({error: `Funds shortage : ₹${(totalSpends + req.body.price) - totalFunds}`});
+            return res.status(400).send({error: `Funds shortage : ₹${(totalExpenses + req.body.price) - totalFunds}`});
          }
 
-        const spending = new Spending(req.body);
-        await spending.save();
-        res.status(201).send(spending);
+        const expense = new Expense(req.body);
+        await expense.save();
+        res.status(201).send(expense);
     }catch(e){
         res.status(400).send(e);
     }
