@@ -2,6 +2,8 @@ const express = require('express');
 var cors = require('cors');
 const { default: mongoose } = require('mongoose');
 const _ = require("lodash"); 
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const app = express();
 require('./db/mongodb')
 
@@ -56,6 +58,54 @@ expenseSchema.methods.toJSON = function(){
 }
 
 const Expense = mongoose.model('Expense', expenseSchema)
+
+
+const userSchema = new mongoose.Schema(
+    {
+        username: {
+            type: 'String'
+        },
+        password:{
+            type:'String'
+        },
+        tokens:[{
+            token:{
+                type: String
+            }
+        }]
+    }
+)
+
+userSchema.pre('save', async function(next){
+    const user = this;
+    if(user.isModified('password')){
+        user.password = await bcrypt.hash(user.password, 8);
+    }
+    next();
+})
+
+userSchema.statics.findByCreds = async (username, password)=>{
+    const user = await User.findOne({username});
+    if(!user){
+        throw new Error('invalid Creds');
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if(!isValidPassword){
+        throw new Error('invalid Creds');
+    }
+    return user;
+}
+
+userSchema.methods.generateToken = async function(){
+    const user = this;
+    const token = jwt.sign({_id:user._id.toString()}, 'thisismysecret');
+    user.tokens = user.tokens.concat({token});
+    await user.save();
+    return token
+}
+
+const User = mongoose.model('User', userSchema);
 
 app.use(express.json());
 
@@ -136,6 +186,26 @@ app.post('/expenses', async (req, res)=>{
         res.status(201).send(expense);
     }catch(e){
         res.status(400).send(e);
+    }
+})
+
+app.post('/users', async (req, res)=>{
+    try{
+        const user = new User(req.body);
+        await user.save();
+        res.status(201).send(user)
+    }catch(e){
+        res.status(400).send();
+    }
+})
+
+app.post('/users/login', async (req, res)=>{
+    try{
+        const user = await User.findByCreds(req.body.username, req.body.password);
+        const token = await user.generateToken();
+        res.status(200).send({token});
+    }catch(e){
+        res.status(401).send({error: 'invalid credentials'});
     }
 })
 
