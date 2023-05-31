@@ -205,7 +205,7 @@ app.post('/users/login', async (req, res)=>{
         const token = await user.generateToken();
         res.status(200).send({token});
     }catch(e){
-        res.status(401).send({error: 'invalid credentials'});
+        res.status(401).send({error: 'Invalid username/password'});
     }
 })
 
