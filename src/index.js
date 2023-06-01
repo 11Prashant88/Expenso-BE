@@ -110,7 +110,7 @@ const User = mongoose.model('User', userSchema);
 app.use(express.json());
 
 app.use(cors({
-    origin: ["http://localhost:4200", "http://localhost:4300", "https://expenso.onrender.com"]
+    origin: ["http://localhost:4200", "https://expenso.onrender.com"]
 }))
 
 app.use((req, res, next)=>{
@@ -136,6 +136,15 @@ app.post('/contributions', async (req, res)=>{
         res.status(201).send(contribution)
     }catch(e){
         res.status(400).send(e);
+    }
+})
+
+app.delete('/contributions', async (req, res)=>{
+    try{
+        await Contribution.deleteMany({});
+        res.status(200).send();
+    }catch(e){
+        res.status(500).send();
     }
 })
 
@@ -186,6 +195,15 @@ app.post('/expenses', async (req, res)=>{
         res.status(201).send(expense);
     }catch(e){
         res.status(400).send(e);
+    }
+})
+
+app.delete('/expenses', async (req, res)=>{
+    try{
+        await Expense.deleteMany({});
+        res.status(200).send();
+    }catch(e){
+        res.status(500).send();
     }
 })
 
