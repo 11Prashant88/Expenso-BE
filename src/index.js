@@ -99,7 +99,7 @@ userSchema.statics.findByCreds = async (username, password)=>{
 
 userSchema.methods.generateToken = async function(){
     const user = this;
-    const token = jwt.sign({_id:user._id.toString()}, 'thisismysecret');
+    const token = jwt.sign({_id:user._id.toString()}, 'thisismysecret', {expiresIn: '1h'});
     user.tokens = user.tokens.concat({token});
     await user.save();
     return token
@@ -110,7 +110,7 @@ const User = mongoose.model('User', userSchema);
 app.use(express.json());
 
 app.use(cors({
-    origin: ["http://localhost:4200", "https://expenso.onrender.com"]
+    origin: ["http://localhost:4200", "http://localhost:4300", "https://expenso.onrender.com"]
 }))
 
 app.use((req, res, next)=>{
@@ -203,7 +203,7 @@ app.post('/users/login', async (req, res)=>{
     try{
         const user = await User.findByCreds(req.body.username, req.body.password);
         const token = await user.generateToken();
-        res.status(200).send({token});
+        res.status(200).send({token, expiresIn:3600});
     }catch(e){
         res.status(401).send({error: {type: 'Error', message:'Invalid username/password'}});
     }
