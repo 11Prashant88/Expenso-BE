@@ -22,6 +22,7 @@ contributionSchema.methods.toJSON = function(){
     const user = this;
 
     const userObject = user.toObject();
+    userObject['id'] = userObject._id;
     delete userObject._id;
     delete userObject.updatedAt;
     delete userObject.__v;
@@ -129,6 +130,19 @@ app.get('/contributions', async (req, res)=>{
     }
 })
 
+app.get('/contributions/:id', async (req, res)=>{
+    const id = req.params.id;
+    try{
+        const contribution = await Contribution.findById(id);
+        if(!contribution){
+            res.status(404).send();
+        }
+        res.status(200).send(contribution);
+    }catch(e){
+        res.status(500).send();
+    }
+})
+
 app.post('/contributions', async (req, res)=>{
     try{
         const contribution = new Contribution(req.body);;
@@ -143,6 +157,32 @@ app.delete('/contributions', async (req, res)=>{
     try{
         await Contribution.deleteMany({});
         res.status(200).send();
+    }catch(e){
+        res.status(500).send();
+    }
+})
+
+app.delete('/contributions/:id', async (req, res)=>{
+    const id = req.params.id;
+    try{
+        const user = await Contribution.findByIdAndDelete(id);
+        if(!user){
+            res.status(404).send();
+        }
+        res.status(200).send(user);
+    }catch(e){
+        res.status(500).send();
+    }
+})
+
+app.patch('/contributions/:id', async (req, res)=>{
+    const id = req.params.id;
+    try{
+        const user = await Contribution.findByIdAndUpdate(id, req.body, {new: true});
+        if(!user){
+            res.status(404).send();
+        }
+        res.status(200).send(user);
     }catch(e){
         res.status(500).send();
     }
