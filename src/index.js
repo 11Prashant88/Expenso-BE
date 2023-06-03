@@ -51,6 +51,7 @@ expenseSchema.methods.toJSON = function(){
     const user = this;
 
     const userObject = user.toObject();
+    userObject['id'] = userObject._id;
     delete userObject._id;
     delete userObject.updatedAt;
     delete userObject.__v;
@@ -197,6 +198,19 @@ app.get('/expenses', async (req, res)=>{
     }
 })
 
+app.get('/expenses/:id', async (req, res)=>{
+    const id = req.params.id;
+    try{
+        const expense = await Expense.findById(id);
+        if(!expense){
+            res.status(404).send();
+        }
+        res.status(200).send(expense);
+    }catch(e){
+        res.status(500).send();
+    }
+})
+
 app.post('/expenses', async (req, res)=>{
     try{
         const contributions = await Contribution.aggregate(
@@ -247,6 +261,19 @@ app.delete('/expenses', async (req, res)=>{
     }
 })
 
+app.delete('/expenses/:id', async (req, res)=>{
+    const id = req.params.id;
+    try{
+        const expense = await Expense.findByIdAndDelete(id);
+        if(!expense){
+            res.status(404).send();
+        }
+        res.status(200).send(expense);
+    }catch(e){
+        res.status(500).send();
+    }
+})
+
 app.post('/users', async (req, res)=>{
     try{
         const user = new User(req.body);
@@ -254,6 +281,48 @@ app.post('/users', async (req, res)=>{
         res.status(201).send(user)
     }catch(e){
         res.status(400).send();
+    }
+})
+app.patch('/expenses/:id', async (req, res)=>{
+    const contributions = await Contribution.aggregate(
+        [
+          {
+            $group:
+              {
+                _id: null,
+                sum: { $sum: "$amount" }
+              }
+          }
+        ]
+     )
+
+     const expenses = await Expense.aggregate(
+        [
+          {
+            $group:
+              {
+                _id: null,
+                sum: { $sum: "$price" }
+              }
+          }
+        ]
+     )
+
+     const totalFunds = !_.isEmpty(contributions) ? contributions[0].sum : 0;
+     const totalExpenses = !_.isEmpty(expenses) ? expenses[0].sum : 0;
+
+     if((totalExpenses + req.body.price) > totalFunds){
+        return res.status(400).send({error: `Funds shortage : ₹${(totalExpenses + req.body.price) - totalFunds}`});
+     }
+    const id = req.params.id;
+    try{
+        const expense = await Expense.findByIdAndUpdate(id, req.body, {new: true});
+        if(!expense){
+            res.status(404).send();
+        }
+        res.status(200).send(expense);
+    }catch(e){
+        res.status(500).send();
     }
 })
 
