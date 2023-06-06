@@ -33,6 +33,35 @@ contributionSchema.methods.toJSON = function(){
 const Contribution = mongoose.model('Contribution', contributionSchema)
 
 
+
+
+const birthdaySchema = new mongoose.Schema({
+    name:{
+        type:'String'
+    },
+    dob:{
+        type:'Date'
+    }
+},{
+    timestamps: true
+})
+
+birthdaySchema.methods.toJSON = function(){
+    const user = this;
+
+    const userObject = user.toObject();
+    userObject['id'] = userObject._id;
+    delete userObject._id;
+    delete userObject.updatedAt;
+    delete userObject.__v;
+
+    return userObject;
+}
+
+const Birthday = mongoose.model('Birthday', birthdaySchema)
+
+
+
 const expenseSchema = new mongoose.Schema({
     item:{
         type:'String'
@@ -333,6 +362,65 @@ app.post('/users/login', async (req, res)=>{
         res.status(200).send({token, expiresIn:3600});
     }catch(e){
         res.status(401).send({error: {type: 'Error', message:'Invalid username/password'}});
+    }
+})
+
+app.get('/birthdays', async (req, res)=>{
+    try{
+        const birthdays = await Birthday.find({});
+        res.status(200).send(birthdays);
+    }catch(e){
+        res.status(500).send();
+    } 
+})
+
+app.get('/birthdays/:id', async (req, res)=>{
+    const id = req.params.id;
+    try{
+        const birthday = await Birthday.findOne({_id: id});
+        if(!birthday){
+            res.status(404).send();
+        }
+        res.status(200).send(birthday);
+    }catch(e){
+        res.status(500).send();
+    } 
+})
+
+app.post('/birthdays', async (req, res)=>{
+    try{
+        const payload = {...req.body, dob: new Date(req.body.dob)}
+        const birthday = new Birthday(req.body);;
+        await birthday.save();
+        res.status(201).send(birthday)
+    }catch(e){
+        res.status(400).send(e);
+    }
+})
+
+app.patch('/birthdays/:id', async (req, res)=>{
+    const id = req.params.id;
+    try{
+        const birthday = await Birthday.findByIdAndUpdate(id, req.body, {new: true});
+        if(!birthday){
+            res.status(404).send();
+        }
+        res.status(200).send(birthday);
+    }catch(e){
+        res.status(500).send();
+    }
+})
+
+app.delete('/birthdays/:id', async (req, res)=>{
+    const id = req.params.id;
+    try{
+        const birthday = await Birthday.findByIdAndDelete(id);
+        if(!birthday){
+            res.status(404).send();
+        }
+        res.status(200).send(birthday);
+    }catch(e){
+        res.status(500).send();
     }
 })
 
