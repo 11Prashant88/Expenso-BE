@@ -1,6 +1,8 @@
 const express = require('express');
+const Contribution = require('../models/contribution');
 const route = express.Router();
 const Expense = require('../models/expense');
+const _ = require("lodash"); 
 route.get('/expenses', async (req, res)=>{
     try{
         const expenses = await Expense.find({});
